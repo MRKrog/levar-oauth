@@ -6,16 +6,34 @@ const nonce = require('nonce')();
 const querystring = require('querystring');
 const axios = require('axios');
 
-const yourAppUrl = 'https://15725d9f.ngrok.io';
+const { sequelize, User } = require('./sequelize');
+
+const forwardingAddress = 'https://15725d9f.ngrok.io';
 const appPublicKey = process.env.SHOPIFY_API_PUBLIC_KEY;
-const appSecretKey = process.env.SHOPIFY_API_SECRET_KEY;
+const appSecretKey = process.env.SHOPIFY_API_SECRET_KEY
+
+
 
 // For App Install/Connection URL >>> https://15725d9f.ngrok.io/shopify?shop=levartest-auth.myshopify.com
 
 const app = express();
-const PORT = 80
+const PORT = 80;
 
 app.get('/', (req, res) => {
+
+  // User.findOne({ where: { id: 10 } }).then(note => {
+  //     console.log(note.get({ plain: true }));
+  // }).finally(() => {
+  //     sequelize.close();
+  // });
+
+  const user = User.build({ email: 'test@gmail.com', password: '12354567889' });
+  user.save().then(() => {
+      console.log('user saved');
+  }).finally(() => {
+      sequelize.close();
+  });
+
   res.send('Server Running and connected!')
 });
 
@@ -26,7 +44,7 @@ app.get('/shopify', (req, res) => {
   if (!shop) { return res.status(400).send('no shop')}
 
   const state = nonce();
-  const redirectUri = `${yourAppUrl}/shopify/callback`;
+  const redirectUri = `${forwardingAddress}/shopify/callback`;
 
   const shopUrl =`https://${shop}/admin/oauth/authorize?client_id=${appPublicKey}&scope=write_products&state=${state}&redirect_uri=${redirectUri}`;
   res.cookie('state', state);
@@ -42,7 +60,7 @@ app.get('/shopify/callback', async (req, res) => {
   const { shop, code, state, timestamp } = req.query;
   const stateCookie = cookie.parse(req.headers.cookie).state;
 
-  console.log('>>>>Second>>>>');
+  console.log('>>>> Second >>>>');
   console.log('shop', shop);
   console.log('stateCookie', stateCookie);
   console.log('state second', state);
@@ -62,10 +80,6 @@ app.get('/shopify/callback', async (req, res) => {
   if (hash !== hmac) { return res.status(400).send('HMAC validation failed')} // Checking if hmac is signed by Shopify
 
   try {
-    // const data = { client_id: appPublicKey, client_secret: appSecretKey, code };
-
-    // const tokenResponse = await fetchAccessToken(shop, data)
-
     // Step: Exchange the access code for a permanent access token
     const tokenResponse = await axios(`https://${shop}/admin/oauth/access_token`, {
       method: 'POST',
@@ -91,6 +105,13 @@ app.get('/shopify/callback', async (req, res) => {
     // When we receive the Password and Key
     // Save into shopify_stores > shopify_key & shopify_password
 
+    // >>>>>>>>>>>>>>>>>
+    
+
+
+
+    // >>>>>>>>>>>>>>>>>
+
     res.send(shopifyData.data.shop)
 
   } catch(error) {
@@ -99,6 +120,6 @@ app.get('/shopify/callback', async (req, res) => {
   }
 });
 
-///////////// Start the Server /////////////
+
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
