@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const UserModel = require('./app/models/user.model');
-const EcommStoreModel = require('./app/models/ecomm_store.model');
+const ShopifyStores = require('./app/models/shopify_store.model');
 const UserIntegrations = require('./app/models/user_integrations.model');
 
 const sequelize = new Sequelize('levAR', 'contractor', 'contract22', {
@@ -34,20 +34,14 @@ User.sync()
   .then(() => console.log('Connected to user table successfully'))
   .catch(err => console.log('Failed to connect to user table'));
 
-const EcommStore = EcommStoreModel(sequelize, Sequelize);
-EcommStore.sync()
-  .then(() => console.log('Connected to ecomm_store table successfully'))
-  .catch(err => console.log('Failed to connect to ecomm_store table'));
-
-const CustomerIntergration = UserIntegrations(sequelize, Sequelize);
-CustomerIntergration.sync()
-  .then(() => console.log('Connected to user_integrations table successfully'))
-  .catch(err => console.log('Failed to connect to user_integrations table'));
+const ShopifyData = ShopifyStores(sequelize, Sequelize);
+ShopifyData.sync()
+  .then(() => console.log('Connected to shopify_stores table successfully'))
+  .catch(err => console.log('Failed to connect to shopify_stores table'));
 
 
 module.exports = {
   User,
-  EcommStore,
-  CustomerIntergration,
+  ShopifyData,
   sequelize
 }

@@ -6,7 +6,7 @@ const nonce = require('nonce')();
 const querystring = require('querystring');
 const axios = require('axios');
 
-const { sequelize, User, CustomerIntergration } = require('./sequelize');
+const { sequelize, User, ShopifyData } = require('./sequelize');
 
 const forwardingAddress = 'https://15725d9f.ngrok.io';
 const appPublicKey = process.env.SHOPIFY_API_PUBLIC_KEY;
@@ -29,7 +29,7 @@ app.get('/shopify', (req, res) => {
 
   const state = nonce();
   const redirectUri = `${forwardingAddress}/shopify/callback`;
-  const shopUrl =`https://${shop}/admin/oauth/authorize?client_id=${appPublicKey}&scope=write_products&state=${state}&redirect_uri=${redirectUri}`;
+  const shopUrl =`https://${shop}/admin/oauth/authorize?client_id=${appPublicKey}&scope=read_products&state=${state}&redirect_uri=${redirectUri}`;
 
   res.cookie('state', state);
   res.redirect(shopUrl);
@@ -55,6 +55,8 @@ app.get('/shopify/callback', async (req, res) => {
       data: { client_id: appPublicKey, client_secret: appSecretKey, code }
     });
 
+    console.log('tokenResponse', tokenResponse.data);
+
     // Step: Make authenticated requests
     const shopifyData = await axios(`https://${shop}/admin/shop.json`, {
       method: 'GET',
@@ -63,24 +65,39 @@ app.get('/shopify/callback', async (req, res) => {
       }
     });
 
+    // *************#START FETCH EXAMPLE TO GET ALL PRODUCTS*************
+    const shopifyProducts = await axios(`https://${shop}/admin/products.json`, {
+      method: 'GET',
+      headers: {
+        'X-Shopify-Access-Token': tokenResponse.data.access_token
+      }
+    });
+    console.log('shopifyProducts', shopifyProducts.data.products);
+    // *************#END FETCH EXAMPLE TO GET ALL PRODUCTS*************
+
+
     // *************TABLE INSERT SECTION*************
 
-    // Entry for User Intergrations Table
-    const customer_id = shopifyData.data.shop.id // customer_integrations
-    const integration_id = '1' // integration_id
+    // >>> insert into shopify_stores >>>
+    // const shopify_store_id = shop;
+    // const levar_user_id = shopifyData.data.shop.id
+    // const shopfiy_store_ul = shopifyData.data.shop.domain;
+    // const shopify_access_token = tokenResponse.data.access_token;
 
-    // Entry for ecomm_stores Table
-    const shopifyStoreURL = shopifyData.data.shop.domain;
-    const shopifyPassword = ''; // What would be the password here?
-    const shopifyKey = ''; // What would be the key here?
 
+    const shopifyStoreData = ShopifyData.build({ shopify_store_id: shopifyData.data.shop.id,
+                                                 shopify_url: shopifyData.data.shop.domain,
+                                                 shopify_access_token: tokenResponse.data.access_token,
+                                                 access_token_experation: '49589485',
+                                               });
+    shopifyStoreData.save().then(() => {
+        console.log('shopify_stores saved');
+    }).finally(() => {
+        sequelize.close();
+    });
     // Insert into Customer Intergrations
     // const customer = CustomerIntergration.build({ levar_user_id: customer_id, intergration_id: integration_id });
-    // customer.save().then(() => {
-    //     console.log('customer saved');
-    // }).finally(() => {
-    //     sequelize.close();
-    // });
+
 
     // Example working to insert User in db
     // const user = User.build({ email: 'mkrog@gmail.com', password: '12354567889' });
