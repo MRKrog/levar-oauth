@@ -67,20 +67,28 @@ app.get('/shopify/callback', async (req, res) => {
 
     // Entry for User Intergrations Table
     const customer_id = shopifyData.data.shop.id // customer_integrations
-    const integration_id = 'shopify=1' // integration_id
+    const integration_id = '1' // integration_id
 
     // Entry for ecomm_stores Table
     const shopifyStoreURL = shopifyData.data.shop.domain;
     const shopifyPassword = ''; // What would be the password here?
     const shopifyKey = ''; // What would be the key here?
 
+    // Insert into Customer Intergrations
+    // const customer = CustomerIntergration.build({ levar_user_id: customer_id, intergration_id: integration_id });
+    // customer.save().then(() => {
+    //     console.log('customer saved');
+    // }).finally(() => {
+    //     sequelize.close();
+    // });
+
     // Example working to insert User in db
-    const user = User.build({ email: 'mkrog@gmail.com', password: '12354567889' });
-    user.save().then(() => {
-        console.log('user saved');
-    }).finally(() => {
-        sequelize.close();
-    });
+    // const user = User.build({ email: 'mkrog@gmail.com', password: '12354567889' });
+    // user.save().then(() => {
+    //     console.log('user saved');
+    // }).finally(() => {
+    //     sequelize.close();
+    // });
 
     // *************TABLE INSERT SECTION*************
 
