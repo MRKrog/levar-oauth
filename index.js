@@ -71,20 +71,14 @@ app.get('/shopify/callback', async (req, res) => {
       headers: {
         'X-Shopify-Access-Token': tokenResponse.data.access_token
       }
-    });
-    console.log('shopifyProducts', shopifyProducts.data.products);
+    })
     // *************#END FETCH EXAMPLE TO GET ALL PRODUCTS*************
 
 
-    // *************TABLE INSERT SECTION*************
-
-    // >>> insert into shopify_stores >>>
-    // const shopify_store_id = shop;
-    // const levar_user_id = shopifyData.data.shop.id
-    // const shopfiy_store_ul = shopifyData.data.shop.domain;
-    // const shopify_access_token = tokenResponse.data.access_token;
-
-
+    // *************#START TABLE WRITE SECTION*************
+    // TODO >>>>>>>>>>
+    // Still need to add correct expiration data
+    // Also hash shopify_access_token before writing
     const shopifyStoreData = ShopifyData.build({ shopify_store_id: shopifyData.data.shop.id,
                                                  shopify_url: shopifyData.data.shop.domain,
                                                  shopify_access_token: tokenResponse.data.access_token,
@@ -95,27 +89,15 @@ app.get('/shopify/callback', async (req, res) => {
     }).finally(() => {
         sequelize.close();
     });
-    // Insert into Customer Intergrations
-    // const customer = CustomerIntergration.build({ levar_user_id: customer_id, intergration_id: integration_id });
 
-
-    // Example working to insert User in db
-    // const user = User.build({ email: 'mkrog@gmail.com', password: '12354567889' });
-    // user.save().then(() => {
-    //     console.log('user saved');
-    // }).finally(() => {
-    //     sequelize.close();
-    // });
-
-    // *************TABLE INSERT SECTION*************
+    // *************#END TABLE INSERT SECTION*************
 
     res.send(shopifyData.data.shop)
+
   } catch(error) {
     console.log(error)
     res.status(500).send('something went wrong')
   }
 });
-
-
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
